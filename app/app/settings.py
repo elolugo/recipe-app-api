@@ -74,10 +74,23 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+"""
+Postgresql engine instead of sqlite
+"""
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        """
+        Getting all the environment variables set in the docker-compose file
+        """
+        # the ip address of the DB
+        'HOST': os.environ.get('DB_HOST'),
+        # the name of the database
+        'NAME': os.environ.get('DB_NAME'),
+        # the user of the database
+        'USER': os.environ.get('DB_USER'),
+        # the password of the database
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
     }
 }
 
