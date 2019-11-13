@@ -80,9 +80,6 @@ Postgresql engine instead of sqlite
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        """
-        Getting all the environment variables set in the docker-compose file
-        """
         # the ip address of the DB
         'HOST': os.environ.get('DB_HOST'),
         # the name of the database
@@ -90,7 +87,7 @@ DATABASES = {
         # the user of the database
         'USER': os.environ.get('DB_USER'),
         # the password of the database
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'PASSWORD': os.environ.get('DB_PASS'),
     }
 }
 
