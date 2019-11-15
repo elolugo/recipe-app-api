@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 CREATE_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
+ME_URL = reverse('user:me')  # The URL of a user -> user/{id_user}
 
 
 def create_user(**params):
@@ -169,3 +170,68 @@ class PublicUserApiTests(TestCase):
 
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_user_unauthorized(self):
+        """
+        Test that an unauthorized user cant retrieve any users data.
+        Test that authentication is required for users API.
+        """
+
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateUserApiTests(TestCase):
+    """ Test the users API for athenticated requests (with a token) """
+
+    def setUp(self):
+        """ Creating a user and authenticate it """
+        self.user = create_user(
+            email='test@londonappdev.com',
+            password='test_password',
+            name='testName'
+        )
+
+        self.client = APIClient()
+
+        """ authenticating the created user for the tests """
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_profile_success(self):
+        """ Test retrieving profile for logged in user """
+
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
+            # Referencing the user created in the setup
+            'name': self.user.name,
+            'email': self.user.email
+        })
+
+    def test_post_me_not_allowed(self):
+        """ Test that a user can't POST on his own profile """
+
+        """ POST just an empty object """
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_update_user_profile(self):
+        """ Test updating the user profile for authenticated user """
+
+        payload = {
+            'email': 'newmail@londonappdev.com',
+            'name': 'newname',
+            'password': 'newpassword'
+        }
+
+        res = self.client.patch(ME_URL, payload)
+
+        """ Updating the setUp user object with what's in the DB """
+        self.user.refresh_from_db()
+
+        self.assertEqual(self.user.name, payload['name'])
+        self.assertTrue(self.user.check_password(payload['password']))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)

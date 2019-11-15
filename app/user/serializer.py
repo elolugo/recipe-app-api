@@ -37,6 +37,30 @@ class UserSerializer(serializers.ModelSerializer):
         """ Create a new user with encypted password and return it """
         return get_user_model().objects.create_user(**validated_data)
 
+    def update(self, instance, validated_data):
+        """
+        Updating setting the password correctly and return it.
+        instance is the model instance that the update was for.
+        """
+
+        """
+        Removing the password for in the new data that we want to update,
+        so that it doesn't store in the DB as unhashed plain text.
+        """
+        password = validated_data.pop('password', None)
+
+        """
+        Updating the object that we want to update except for the password.
+        Using the ModelSerializer update function that updates in the DB.
+        instance is the model provided by views.ManageUserView.get_object()
+        """
+        user = super().update(instance, validated_data)
+
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return user
 
 class AuthTokenSerializer(serializers.Serializer):
     """ Serializer for the user authentication object"""
@@ -53,16 +77,24 @@ class AuthTokenSerializer(serializers.Serializer):
         attrs variable are all the fields in the serializer.
         """
 
+        """
+        Getting the fields of the POST request
+        """
         email = attrs.get('email')
         password = attrs.get('password')
 
+        """
+        Authenticating the POST fields
+        """
         user = authenticate(
-            request=self.context.get('request'),  #
             username=email,
             password=password
         )
 
         if not user:
+            """
+            If the there are wrong credentials
+            """
             msg = _(' Unable to authenticate with provided credentials ')
             raise serializers.ValidationError(msg, code='authorization')
 
