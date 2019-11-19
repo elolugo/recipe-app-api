@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for the users object.
     This will run first when doing any HTTP requests (POST, GET, UPDATE).
-    Every input validations muste be made here.
+    Every input validations must be made here.
     """
 
     class Meta:
