@@ -14,7 +14,8 @@ for converting into json the Tags objects saved in the database
 from recipe.serializers import TagSerializer
 
 
-TAGS_URL = reverse('recipe:tag-list')  # ?????
+TAGS_URL = reverse('recipe:tag-list')
+# ListModelMixin automatically append the -list
 
 
 class PublicTagsApiTests(TestCase):
@@ -96,3 +97,26 @@ class PrivateTagsApiTests(TestCase):
         is the same that the tag created for the user.
         """
         self.assertEqual(res.data[0]['name'], tag.name)
+
+    def test_create_tags_successfully(self):
+        """ Successfully created a tag for an user """
+
+        payload = {'name': 'Test tag'}
+
+        self.client.post(TAGS_URL, payload)
+
+        exists = Tag.objects.filter(
+            user=self.user,
+            name=payload['name']
+        ).exists()
+
+        self.assertTrue(exists)
+
+    def test_create_tag_invalid(self):
+        """ Test creating a new tag with invalid payload """
+
+        payload = {'name': ''}
+
+        res = self.client.post(TAGS_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
