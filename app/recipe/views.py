@@ -46,7 +46,9 @@ class TagViewSet(viewsets.GenericViewSet,
         serializer.save(user=self.request.user)
 
 
-class IngredientViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class IngredientViewSet(viewsets.GenericViewSet,
+                        mixins.ListModelMixin,
+                        mixins.CreateModelMixin):
     """ Manage ingredients in the database """
 
     """
@@ -78,3 +80,7 @@ class IngredientViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         Filtering the queryset before responding the GET request
         """
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    def perform_create(self, serializer):
+        """ What to do if there is a POST request """
+        serializer.save(user=self.request.user)
