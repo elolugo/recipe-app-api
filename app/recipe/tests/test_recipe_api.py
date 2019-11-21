@@ -223,9 +223,78 @@ class PrivateIngredientsApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         recipe = Recipe.objects.get(id=res.data['id'])
+
+        """ Returns a list of Ingredient objects """
         ingredients = recipe.ingredients.all()
 
         self.assertEqual(ingredients.count(), 2)
 
         self.assertIn(ingredient1, ingredients)
         self.assertIn(ingredient2, ingredients)
+
+    def test_partial_update_recipe(self):
+        """ Test updating a recipe with a PATCH """
+
+        recipe = sample_recipe(user=self.user)
+
+        recipe.tags.add(sample_tag(user=self.user))
+
+        new_tag = sample_tag(user=self.user, name='Curry')
+
+        payload = {
+            'title': 'Chicken tikka',
+            'tags': [new_tag.id]
+        }
+
+        url = detail_url(recipe.id)
+
+        self.client.patch(url, payload)
+
+        """
+        Updating the recipe variable with what's in the DB
+        """
+        recipe.refresh_from_db()
+
+        self.assertEqual(recipe.title, payload['title'])
+
+        """ Returns a list of Tag objects """
+        tags = recipe.tags.all()
+
+        self.assertEqual(tags.count(), 1)
+
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_recipe(self):
+        """ Testing a PUT request for a recipe """
+
+        recipe = sample_recipe(user=self.user)
+
+        recipe.tags.add(sample_tag(user=self.user))
+
+        """
+        The object will be replaced with this payload when doing a PUT
+        """
+        payload = {
+            'title': 'Spaghetti Carbonara',
+            'time_minutes': 25,
+            'price': 5.00
+        }
+
+        url = detail_url(recipe.id)
+        self.client.put(url, payload)
+
+        """
+        Updating the recipe variable with what's in the DB
+        """
+        recipe.refresh_from_db()
+
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(recipe.time_minutes, payload['time_minutes'])
+        self.assertEqual(recipe.price, payload['price'])
+
+        """
+        Checking that since the payload didn't contain any tags,
+        the tags field from the recipe were removed
+        """
+        tags = recipe.tags.all()
+        self.assertEqual(len(tags), 0)
