@@ -12,6 +12,7 @@ just including the router and therefore, all the urls registered on the router
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
 router.register('ingredients', views.IngredientViewSet)
+router.register('recipes', views.RecipeViewSet)
 
 """
 Which app this urls.py belongs to.

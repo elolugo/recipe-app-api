@@ -20,7 +20,7 @@ class PublicIngredientsApiTests(TestCase):
         self.client = APIClient()
 
     def test_login_required(self):
-        """ Test that it return None if the user is no authenticated """
+        """ Test that it return None if the user is not authenticated """
 
         res = self.client.get(INGREDIENTS_URL)
 

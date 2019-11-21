@@ -146,7 +146,7 @@ class Recipe(models.Model):
     Second -> Tag
     When passing the class name as a string it doesn't matter the order.
     """
-    Ingredients = models.ManyToManyField('Ingredient')
+    ingredients = models.ManyToManyField('Ingredient')
     tags = models.ManyToManyField('Tag')
 
     def __str__(self):

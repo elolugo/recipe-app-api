@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag, Ingredient
+from core.models import Tag, Ingredient, Recipe
 
 from recipe import serializers
 
@@ -30,7 +30,7 @@ class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
         """
 
         """
-        Filtering the queryset before responding the GET request
+        Filtering the queryset by the user that made the GET request
         """
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
@@ -63,3 +63,32 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
     queryset = Ingredient.objects.all()  # Attribute of GenericAPIView
 
     serializer_class = serializers.IngredientSerializer
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """ Manage recipes in the database """
+
+    serializer_class = serializers.RecipeSerializer
+    queryset = Recipe.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        """
+        Getter of the queryset.
+        For returning objects for the current authenticated user only.
+        """
+
+        """
+        Filtering the queryset by the user that made the GET request
+        """
+        return self.queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        """ Return appropraite serializer class """
+
+        """ Checking which type of request was made eg: GET, POST, PUT... """
+        if self.action == 'retrieve':
+            return serializers.RecipeDetailSerializer
+
+        return self.serializer_class
