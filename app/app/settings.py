@@ -132,7 +132,25 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
+"""
+Where the static files will be dumped
+when using collectstatic command of Django
+"""
+STATIC_ROOT = '/vol/web/static'
+"""
+All the static files will list when accessing 127.0.0.1:8000/static
+"""
 STATIC_URL = '/static/'
+
+"""
+Where the media files will be dumped when the project is built
+"""
+MEDIA_ROOT = '/vol/web/media'
+"""
+All the static files will list when accessing 127.0.0.1:8000/static
+"""
+MEDIA_URL = '/media/'
+
 
 """
 Setting that our default user model will be the one in core.User
