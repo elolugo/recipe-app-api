@@ -75,16 +75,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    def _params_to_ints(self, qs):
+        """
+        Convert a list of string IDs separated by commas to a list of integers
+        """
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
         """
         Getter of the queryset.
-        For returning objects for the current authenticated user only.
+        For returning objects for the current authenticated user only,
+        and apply filters if there were requested.
         """
+
+        queryset = self.queryset
+
+        """
+        Retrieving the content of the GET params.
+        If there are not any params, then by default it will be return as None
+        """
+        tags = self.request.query_params.get('tags')
+        ingredients = self.request.query_params.get('ingredients')
+
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            """Return all the Recipes that has the matched ids"""
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if ingredients:
+            ingredient_ids = self._params_to_ints(ingredients)
+            """Return all the Recipes that has the matched ids"""
+            queryset = queryset.filter(ingredients__id__in=ingredient_ids)
 
         """
         Filtering the queryset by the user that made the GET request
         """
-        return self.queryset.filter(user=self.request.user)
+        return queryset.filter(user=self.request.user)
 
     def get_serializer_class(self):
         """ Return appropraite serializer class """
