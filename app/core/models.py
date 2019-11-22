@@ -10,7 +10,7 @@ from django.conf import settings
 def recipe_image_file_path(instance, filename):
     """
     Function that generates a random filename
-    for the images uploaded
+    for the images uploaded for storing in the system.
     """
 
     """
@@ -169,7 +169,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField('Ingredient')
     tags = models.ManyToManyField('Tag')
 
-    """ Just referencing the function and not calling it """
+    """Just reference the function and recipe_image_file_path not call it"""
     image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 
     def __str__(self):

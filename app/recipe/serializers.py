@@ -93,7 +93,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeDetailSerializer(RecipeSerializer):
-    """ Serializer for detailed recipes """
+    """Serializer for detailed recipes"""
 
     """
     Nested serializer for returning the ingredients
@@ -101,3 +101,12 @@ class RecipeDetailSerializer(RecipeSerializer):
     """
     ingredients = IngredientSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
+
+
+class RecipeImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes"""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'image')
+        read_only_fields = ('id',)

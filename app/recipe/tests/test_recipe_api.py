@@ -1,3 +1,8 @@
+import tempfile
+import os
+
+from PIL import Image  # PIL is the Pillow requirement
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase
@@ -11,6 +16,11 @@ from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
 
 RECIPE_URL = reverse('recipe:recipe-list')
+
+
+def image_upload_url(recipe_id):
+    """ Return URL fro recipe image upload """
+    return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 
 def detail_url(recipe_id):
@@ -298,3 +308,61 @@ class PrivateIngredientsApiTests(TestCase):
         """
         tags = recipe.tags.all()
         self.assertEqual(len(tags), 0)
+
+
+class RecipeImageUploadTests(TestCase):
+    """  """
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = get_user_model().objects.create_user(
+            'test@londonappdev',
+            '12345678'
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        self.recipe = sample_recipe(self.user)
+
+    def tearDown(self):
+        """Opposite of setUp, running after all the tests"""
+
+        """Deleting the created image for cleaning the files created"""
+        self.recipe.image.delete()
+
+    def test_upload_image(self):
+        """Testing that an image uploaded successfully"""
+
+        url = image_upload_url(self.recipe.id)
+
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            """Creating a temporary file in the system with .jpg extension"""
+
+            img = Image.new('RGB', (10, 10))  # Creating a random image 10x10
+            img.save(ntf, format='JPEG')  # Saving into a JPEG format
+            ntf.seek(0)  # Reverting back the pointer into the first byte
+
+            """
+            Sending an image into a POST request.
+            The multipart option is for changin the default json format,
+            from json to multipart for sending data.
+            """
+            res = self.client.post(url, {'image': ntf}, format='multipart')
+
+            self.recipe.refresh_from_db()
+
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            self.assertIn('image', res.data)
+
+            """ Checking if the image exists in the back-end system """
+            self.assertTrue(os.path.exists(self.recipe.image.path))
+
+    def test_upload_image_bad_request(self):
+        """Test uploading an invalid image"""
+        url = image_upload_url(self.recipe.id)
+
+        """Expecting an ImageFile object but sending a string"""
+        res = self.client.post(url, {'image': 'notimage'}, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
